@@ -1,15 +1,13 @@
 #include <Arduino.h>
+#include <IRremote.h>
 
 void setup() {
-    pinMode(2, OUTPUT);
+    IrSender.begin(2);
 }
 
 void loop() {
     while (1) {
-        digitalWrite(2, HIGH);
-        delay(1000);
-
-        digitalWrite(2, LOW);
-        delay(1000);
+        IrSender.sendNEC(0x80, 0x92, 3);
+        delay(5000);
     }
-}
+} 
