@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <IRremote.h>
 
-#define IR_PIN 2
+#define IR_PIN 3
 
 void setup() {
     pinMode(IR_PIN, OUTPUT);
