@@ -2,8 +2,11 @@
 
 #include "nec_ir.hpp"
 #include "pins.hpp"
+#include "fan.hpp"
 
 #include <digitalWriteFast.h>
+
+Fan fan;
 
 void setup() {
     nec_ir::begin();
@@ -80,12 +83,29 @@ void loop() {
         // We don't get a return to high this time
         pinModeFast(I2C_SDA_PIN, INPUT_PULLUP);
 
-        // Command 0x10 - toggle power
-        // TODO: in the real thing, it shouldn't work like this - rather packets should describe
-        // the entire intended fan state, and we should figure out what needs to change to get it
-        // there!
-        if (data == 0x10) {
-            nec_ir::transmit(0x80, 0x92);
+        // Packet format:
+        //   1 x x x s s s s
+        //           '--.--'
+        //              '------ new desired speed (0-12), 0 means off
+        if (data & 0b10000000) {
+            uint8_t desired_speed = data & 0x0F;
+            if (desired_speed > 12) return;
+
+            bool power; uint8_t up; uint8_t down;
+            fan.steps_to_change_speed(desired_speed, &power, &up, &down);
+
+            if (power) {
+                fan.toggle_power();
+                delay(200);
+            }
+            for (uint8_t i = 0; i < up; i++) {
+                fan.speed_up();
+                delay(200);
+            }
+            for (uint8_t i = 0; i < down; i++) {
+                fan.speed_down();
+                delay(200);
+            }
         }
     }
 
