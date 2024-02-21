@@ -23,18 +23,19 @@ void loop() {
     */
 
     // If SCL goes low, we're going to receive a transmission
+    // TODO: set up a timer to get us back to a nice state if things go awry
     if (digitalReadFast(I2C_SCL_PIN) == 0) {
-        digitalWriteFast(IR_PIN, HIGH);
-
         // Read address
-        uint8_t address = 0;
+        uint8_t addressAndMode = 0;
         uint8_t i = 7;
         while (1) {
             // Wait for clock high
             while (digitalReadFast(I2C_SCL_PIN) == 0);
 
             // Read bit
-            address |= digitalReadFast(I2C_SDA_PIN) << i;
+            if (digitalReadFast(I2C_SDA_PIN)) {
+                addressAndMode |= 1 << i;
+            }
 
             if (i == 0) break;
             i--;
@@ -43,9 +44,18 @@ void loop() {
             while (digitalReadFast(I2C_SCL_PIN) == 1);
         }
 
+        digitalWriteFast(IR_PIN, HIGH);
+
+        // The byte transmission we just received actually encodes two data items; the first 7 bits
+        // is the address, and the last bit is write (0) or read (1)
+        uint8_t address = addressAndMode >> 1;
+
         // Once we've received the address, pull down SDA to ACK, wait a cycle, and release
-        pinModeFast(I2C_SDA_PIN, OUTPUT);
+        if (address != 0x40)
+            return;
+
         digitalWriteFast(I2C_SDA_PIN, LOW);
+        pinModeFast(I2C_SDA_PIN, OUTPUT);
         while (digitalReadFast(I2C_SCL_PIN) == 1);
         while (digitalReadFast(I2C_SCL_PIN) == 0);
         while (digitalReadFast(I2C_SCL_PIN) == 1);
@@ -69,8 +79,8 @@ void loop() {
         }
 
         // Once we've received the address, pull down SDA to ACK, wait a cycle, and release
-        pinModeFast(I2C_SDA_PIN, OUTPUT);
         digitalWriteFast(I2C_SDA_PIN, LOW);
+        pinModeFast(I2C_SDA_PIN, OUTPUT);
         while (digitalReadFast(I2C_SCL_PIN) == 1);
         while (digitalReadFast(I2C_SCL_PIN) == 0);
         // We don't get a return to high this time
