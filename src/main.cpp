@@ -1,12 +1,12 @@
 #include <Arduino.h>
 
-// #include "nec_ir.hpp"
+#include "nec_ir.hpp"
 #include "pins.hpp"
 
 #include <digitalWriteFast.h>
 
 void setup() {
-    // nec_ir::begin();
+    nec_ir::begin();
     
     pinMode(IR_PIN, OUTPUT);
 
@@ -16,13 +16,6 @@ void setup() {
 }
 
 void loop() {
-    /*
-    while (1) {
-        nec_ir::transmit(0x80, 0x92);
-        delay(2000);
-    }
-    */
-
     // If SCL goes low, we're going to receive a transmission
     // TODO: set up a timer to get us back to a nice state if things go awry
     if (digitalReadFast(I2C_SCL_PIN) == 0) {
@@ -86,6 +79,14 @@ void loop() {
         while (digitalReadFast(I2C_SCL_PIN) == 0);
         // We don't get a return to high this time
         pinModeFast(I2C_SDA_PIN, INPUT_PULLUP);
+
+        // Command 0x10 - toggle power
+        // TODO: in the real thing, it shouldn't work like this - rather packets should describe
+        // the entire intended fan state, and we should figure out what needs to change to get it
+        // there!
+        if (data == 0x10) {
+            nec_ir::transmit(0x80, 0x92);
+        }
     }
 
     digitalWriteFast(I2C_ACTIVITY_PIN, LOW);
