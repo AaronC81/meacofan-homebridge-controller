@@ -12,6 +12,7 @@ void setup() {
 
     pinMode(I2C_SCL_PIN, INPUT_PULLUP);
     pinMode(I2C_SDA_PIN, INPUT_PULLUP);
+    pinMode(I2C_ACTIVITY_PIN, OUTPUT);
 }
 
 void loop() {
@@ -44,8 +45,6 @@ void loop() {
             while (digitalReadFast(I2C_SCL_PIN) == 1);
         }
 
-        digitalWriteFast(IR_PIN, HIGH);
-
         // The byte transmission we just received actually encodes two data items; the first 7 bits
         // is the address, and the last bit is write (0) or read (1)
         uint8_t address = addressAndMode >> 1;
@@ -53,6 +52,8 @@ void loop() {
         // Once we've received the address, pull down SDA to ACK, wait a cycle, and release
         if (address != 0x40)
             return;
+
+        digitalWriteFast(I2C_ACTIVITY_PIN, HIGH);
 
         digitalWriteFast(I2C_SDA_PIN, LOW);
         pinModeFast(I2C_SDA_PIN, OUTPUT);
@@ -87,5 +88,5 @@ void loop() {
         pinModeFast(I2C_SDA_PIN, INPUT_PULLUP);
     }
 
-    digitalWriteFast(IR_PIN, LOW);
+    digitalWriteFast(I2C_ACTIVITY_PIN, LOW);
 } 
