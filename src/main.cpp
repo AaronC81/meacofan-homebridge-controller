@@ -3,7 +3,7 @@
 // #include "nec_ir.hpp"
 #include "pins.hpp"
 
-#include <IRremote.hpp>
+#include <digitalWriteFast.h>
 
 void setup() {
     // nec_ir::begin();
