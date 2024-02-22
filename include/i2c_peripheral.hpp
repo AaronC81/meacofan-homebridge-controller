@@ -4,5 +4,5 @@
 
 namespace i2c_peripheral {
     void begin();
-    bool wait(uint8_t *datum);
+    bool wait_for_byte(uint8_t *data);
 }

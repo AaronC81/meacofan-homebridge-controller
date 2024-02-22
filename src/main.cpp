@@ -16,7 +16,7 @@ void setup() {
 
 void loop() {
     uint8_t data;
-    if (i2c_peripheral::wait(&data)) {
+    if (i2c_peripheral::wait_for_byte(&data)) {
         // Packet format:
         //   1 x x x s s s s
         //           '--.--'
