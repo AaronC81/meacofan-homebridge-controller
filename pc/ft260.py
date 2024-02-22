@@ -50,7 +50,6 @@ class FT260Device:
             len(data),
             *data,
         ]
-        print([hex(x) for x in payload])
         self._hid.write(payload)
     
     @dataclass
