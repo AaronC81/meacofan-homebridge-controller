@@ -14,7 +14,9 @@ class Fan:
         self.ft260.disconnect()
 
     def set_speed(self, speed: int):
-        self.ft260.i2c_write(0x40, FT260Device.I2CCondition.START_AND_STOP, [0b10000000 | speed])
+        message = 0b00010000 | speed
+        message += message.bit_count() << 5 # Checksum
+        self.ft260.i2c_write(0x40, FT260Device.I2CCondition.START_AND_STOP, [message])
 
     def turn_off(self):
         self.set_speed(0)
