@@ -12,6 +12,14 @@ Fan fan;
 void setup() {
     nec_ir::begin();
     i2c_peripheral::begin();
+
+    // Show that we've got power!
+    for (int i = 0; i < 3; i++) {
+        digitalWrite(I2C_ACTIVITY_PIN, HIGH);
+        delay(200);
+        digitalWrite(I2C_ACTIVITY_PIN, LOW);
+        delay(200);
+    }
 }
 
 void loop() {
