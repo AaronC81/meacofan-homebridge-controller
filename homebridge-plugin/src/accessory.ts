@@ -53,6 +53,8 @@ class Meacofan1056Tiny implements AccessoryPlugin {
   private readonly informationService: Service;
 
   private fanOn: boolean = false;
+  
+  private fanSpeed: number = 0; // 0-100
 
   constructor(log: Logging, config: AccessoryConfig, api: API) {
     this.log = log;
@@ -64,18 +66,19 @@ class Meacofan1056Tiny implements AccessoryPlugin {
         callback(undefined, this.fanOn);
       })
       .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
+        log.info("On SET");
         this.fanOn = value as boolean;
-
-        for (var i = 0; i < 5; i++) {
-          setTimeout(() => {
-            if (this.fanOn) {
-              exec("i2ctransfer -y 1 w1@0x40 0x51");
-            } else {
-              exec("i2ctransfer -y 1 w1@0x40 0x30");
-            }
-          }, i * 100);
-        }
-
+        this.sendState();
+        callback();
+      });
+    this.fanService.getCharacteristic(hap.Characteristic.RotationSpeed)
+      .on(CharacteristicEventTypes.GET, (callback: CharacteristicGetCallback) => {
+        callback(undefined, this.fanSpeed);
+      })
+      .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
+        log.info("Speed SET");
+        this.fanSpeed = value as number;
+        this.sendState();
         callback();
       });
 
@@ -84,6 +87,37 @@ class Meacofan1056Tiny implements AccessoryPlugin {
       .setCharacteristic(hap.Characteristic.Model, "MeacoFan 1056 with ATtiny85-based I2C adapter");
 
     log.info("Fan initialised");
+  }
+
+  mappedSpeed(): number {
+    // Remaps 0-100 into 1-12
+    return Math.floor((this.fanSpeed / 100) * 11) + 1;
+  }
+
+  sendState() {
+    // Compose packet
+    let data = 0b00010000;
+    if (this.fanOn) {
+      data |= this.mappedSpeed();
+    }
+
+    // Add checksum
+    let calculated_checksum = 0;
+    calculated_checksum += (data & 0b00010000 ? 1 : 0);
+    calculated_checksum += (data & 0b00001000 ? 1 : 0);
+    calculated_checksum += (data & 0b00000100 ? 1 : 0);
+    calculated_checksum += (data & 0b00000010 ? 1 : 0);
+    calculated_checksum += (data & 0b00000001 ? 1 : 0);
+    data |= calculated_checksum << 5;
+
+    // Send a few times to make up for our crap bitbanged I2C
+    let command = "i2ctransfer -y 1 w1@0x40 0x" + data.toString(16);
+    this.log.info("Executing: " + command);
+    for (var i = 0; i < 5; i++) {
+      setTimeout(() => {
+        exec(command);
+      }, i * 100);
+    }
   }
 
   /*
