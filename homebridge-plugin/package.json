@@ -1,0 +1,25 @@
+{
+  "name": "homebridge-meacofan-1056-tiny",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/accessory.js",
+  "scripts": {
+    "clean": "rimraf ./dist",
+    "build": "rimraf ./dist && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.20",
+    "homebridge": "^1.7.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "homebridge": ">=1.0.0"
+  }
+}
