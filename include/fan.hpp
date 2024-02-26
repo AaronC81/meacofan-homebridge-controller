@@ -34,7 +34,7 @@ public:
             // there's no noticeable side effects on our part.
             nec_ir::transmit(ADDRESS, COMMAND_LIGHT);
 
-            delay(50); // Wait a little bit, just in case
+            delay(500); // Wait a little bit, just in case
         }
 
         nec_ir::transmit(ADDRESS, command);
